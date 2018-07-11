@@ -1,5 +1,9 @@
+package game;
+
 import javax.swing.*;
 import java.awt.*;
+
+import static game.Game.*;
 
 public class Snake {
 
@@ -24,17 +28,16 @@ public class Snake {
             public boolean isOpposite(Sides side) {
                 return Sides.up.equals(side);
             }
-        };
+        }
     }
 
     interface HasOpposite {
         boolean isOpposite(Sides side);
     }
 
+    public static final int SNAKE_OVERHEAD = DOT_SIZE;
 
     private JPanel field;
-
-    private Image dot;
 
     private Sides side;
 
@@ -46,15 +49,15 @@ public class Snake {
     private boolean idle_right = true;
     private int idle_move = 0;
 
-    public Snake(GameField field) {
+    public Snake(Game field) {
         this.field = field;
         dots = 3;
         side = Sides.right;
-        x = new int[GameField.ALL_DOTS];
-        y = new int[GameField.ALL_DOTS];
+        x = new int[ALL_DOTS];
+        y = new int[ALL_DOTS];
         for (int i = 0; i < dots; i++) {
-            x[i] = dots * GameField.DOT_SIZE - i * GameField.DOT_SIZE;
-            y[i] = dots * GameField.DOT_SIZE;
+            x[i] = dots * DOT_SIZE - i * DOT_SIZE;
+            y[i] = dots * DOT_SIZE;
         }
     }
 
@@ -72,20 +75,17 @@ public class Snake {
             y[i] = y[i - 1];
         }
         switch (side) {
-            case left: x[0] -= GameField.DOT_SIZE; break;
-            case down: y[0] += GameField.DOT_SIZE; break;
-            case right: x[0] += GameField.DOT_SIZE; break;
-            case up:  y[0] -= GameField.DOT_SIZE; break;
+            case left: x[0] -= DOT_SIZE; break;
+            case down: y[0] += DOT_SIZE; break;
+            case right: x[0] += DOT_SIZE; break;
+            case up:  y[0] -= DOT_SIZE; break;
             default:  System.exit(1);
                 System.out.println("What problem with direction?");
         }
-        if(x[0]>GameField.SIZE) x[0] %= (GameField.SIZE + GameField.DOT_SIZE);
-        else if(x[0]< 0) x[0] += (GameField.SIZE + GameField.DOT_SIZE);
-        if(y[0]>GameField.SIZE) y[0] %= (GameField.SIZE + GameField.DOT_SIZE);
-        else if(y[0]< 0) y[0] += (GameField.SIZE + GameField.DOT_SIZE);
-//        x[0] = Math.abs(x[0]);
-//        y[0] = Math.abs(y[0]);
-
+        if(x[0] > FIELD_SIZE - DOT_SIZE) x[0] %= FIELD_SIZE;
+        else if(x[0]< 0) x[0] += FIELD_SIZE;
+        if(y[0] > FIELD_SIZE - DOT_SIZE) y[0] %= FIELD_SIZE;
+        else if(y[0]< 0) y[0] += FIELD_SIZE;
     }
 
     public void draw(Graphics g, Image head, Image dot) {
@@ -99,16 +99,16 @@ public class Snake {
     }
 
     public boolean checkFieldCollisions() {
-//        if (x[0] > GameField.SIZE) {
+//        if (x[0] > SIZE) {
 //            return true;
 //        }else if (x[0] < 0) {
 //            return true;
-//        }else if (y[0] > GameField.SIZE) {
+//        }else if (y[0] > SIZE) {
 //            return true;
 //        }else if (y[0] < 0) {
 //            return true;
 //        }else
-            return false;
+        return false;
     }
 
     public boolean checkSelfCollision() {
@@ -131,8 +131,8 @@ public class Snake {
         return false;
     }
 
-    public int getDelay() {
-        return 100 + (int) (450 / (1 +  Math.pow(2*Math.E, 0.25*dots)));
+    public double getComplexityFactor() {
+        return 3 / (1 +  Math.pow(2*Math.E, 0.25*dots));
 }
 
     public void idle(){
@@ -149,7 +149,7 @@ public class Snake {
     }
 
     public int getNextY() {
-        return (y[0] + GameField.DOT_SIZE) % GameField.SIZE;
+        return (y[0] + DOT_SIZE) % FIELD_SIZE;
     }
 
     public boolean full() {

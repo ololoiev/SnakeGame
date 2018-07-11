@@ -1,3 +1,5 @@
+package game;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -6,11 +8,18 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.Random;
 
-public class GameField extends JPanel implements ActionListener {
+public class Game extends JPanel implements ActionListener {
 
     public static final int DOT_SIZE = 16;
-    public  static final int SIZE = DOT_SIZE * (20 - 1);
-    public static final int ALL_DOTS = 20 * 20;
+    private static final int REAL_SIZE = 20;
+    public static final int FIELD_SIZE = DOT_SIZE * REAL_SIZE;
+    public static final int ALL_DOTS = REAL_SIZE * REAL_SIZE;
+    private final String GAME_OVER = "GAME OVER";
+    private final String WIN = "WIN!";
+    private static final int SMALL_DELAY = 10;
+    private static final int BASE_HUMAN_DELAY = 100;
+    private static final int ADDITIONAL_HUMAN_DELAY = 150;
+
     private Image dot;
     private Image head;
     private Image apple;
@@ -19,7 +28,7 @@ public class GameField extends JPanel implements ActionListener {
     private Timer timer;
     private boolean inGame = true;
     private boolean pause = false;
-    private final String GAME_OVER = "GAME OVER";
+
     private boolean availableMove = false;
     private boolean idle = false;
     private boolean win = false;
@@ -28,7 +37,7 @@ public class GameField extends JPanel implements ActionListener {
 
 
 
-    public GameField() {
+    public Game() {
         setBackground(Color.BLACK);
         loadImages();
         initGame();
@@ -36,27 +45,27 @@ public class GameField extends JPanel implements ActionListener {
         setFocusable(true);
     }
 
-    public void initGame() {
+    private void initGame() {
         createSnake();
         createApple();
         initTimer();
     }
 
-    public void initTimer() {
-        timer = new Timer(250, this);
+    private void initTimer() {
+        timer = new Timer(BASE_HUMAN_DELAY + ADDITIONAL_HUMAN_DELAY, this);
         timer.start();
     }
 
-    public void createSnake() {
+    private void createSnake() {
         snake = new Snake(this);
     }
 
-    public void createApple() {
-        appleX = new Random().nextInt(20) * DOT_SIZE;
-        appleY = idle ? snake.getNextY() : new Random().nextInt(20) * DOT_SIZE;
+    private void createApple() {
+        appleX = new Random().nextInt(REAL_SIZE) * DOT_SIZE;
+        appleY = idle ? snake.getNextY() : new Random().nextInt(REAL_SIZE) * DOT_SIZE;
     }
 
-    public void loadImages() {
+    private void loadImages() {
         ImageIcon iia = new ImageIcon("apple.png");
         apple = iia.getImage();
         ImageIcon iid = new ImageIcon("snake.png");
@@ -65,7 +74,7 @@ public class GameField extends JPanel implements ActionListener {
         head = iih.getImage();
     }
 
-    public void move() {
+    private void move() {
         snake.move();
     }
 
@@ -74,17 +83,16 @@ public class GameField extends JPanel implements ActionListener {
         super.paintComponent(g);
         if (win) {
             g.setColor(Color.WHITE);
-            g.drawString("WIN!", 125, SIZE/2);
+            g.drawString(WIN, FIELD_SIZE/2 - 10, FIELD_SIZE/2);
         } else {
             if (inGame) {
                 g.drawImage(apple, appleX, appleY, this);
                 snake.draw(g, head, dot);
             } else {
-
                 //Font f = new Font("Arial", 14, Font.BOLD);
                 g.setColor(Color.WHITE);
                 //g.setFont(f);
-                g.drawString(GAME_OVER, 125, SIZE / 2);
+                g.drawString(GAME_OVER, FIELD_SIZE/2 - 35, FIELD_SIZE/2);
             }
         }
     }
@@ -94,13 +102,13 @@ public class GameField extends JPanel implements ActionListener {
         inGame = false;
     }
 
-    public void checkApple() {
+    private void checkApple() {
         if (snake.checkApple(appleX, appleY)) {
             createApple();
         }
     }
 
-    public void checkCollisions() {
+    private void checkCollisions() {
         if (snake.checkSelfCollision() || snake.checkFieldCollisions()) {
             inGame = false;
         }
@@ -120,9 +128,11 @@ public class GameField extends JPanel implements ActionListener {
                 if (idle) {
                     availableMove = false;
                     snake.idle();
-                    setTimer(10);
+                    setTimer(SMALL_DELAY);
                 }else {
-                    setTimer(snake.getDelay());
+                    setTimer(BASE_HUMAN_DELAY +
+                            (int) (ADDITIONAL_HUMAN_DELAY * snake.getComplexityFactor())
+                    );
                 }
                 move();
             }
